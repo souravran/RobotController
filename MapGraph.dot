@@ -1,0 +1,31 @@
+graph G {
+0 [Navigable=0, Occupancy=0, X=0, Y=0];
+1 [Navigable=0, Occupancy=0, X=0, Y=1];
+2 [Navigable=0, Occupancy=0, X=0, Y=2];
+3 [Navigable=0, Occupancy=0, X=0, Y=3];
+4 [Navigable=0, Occupancy=0, X=1, Y=0];
+5 [Navigable=0, Occupancy=0, X=1, Y=1];
+6 [Navigable=0, Occupancy=0, X=1, Y=2];
+7 [Navigable=0, Occupancy=0, X=1, Y=3];
+8 [Navigable=0, Occupancy=0, X=2, Y=0];
+9 [Navigable=0, Occupancy=0, X=2, Y=1];
+10 [Navigable=0, Occupancy=0, X=2, Y=2];
+11 [Navigable=0, Occupancy=0, X=2, Y=3];
+0--1 ;
+1--2 ;
+2--3 ;
+0--4 ;
+4--5 ;
+1--5 ;
+5--6 ;
+2--6 ;
+6--7 ;
+3--7 ;
+4--8 ;
+8--9 ;
+5--9 ;
+9--10 ;
+6--10 ;
+10--11 ;
+7--11 ;
+}
