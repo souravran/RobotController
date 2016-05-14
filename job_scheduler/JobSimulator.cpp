@@ -65,10 +65,11 @@ JobSimulator::JobSimulator()
 
   // set arbitrary chosen couple of cells on the track-layout from simulation model as pickup and drop cells for a job,
   // the cell IDs are provided in order to identify the Cell while path planning
-  Cell pickupLocation;
-  pickupLocation.SetProperty<unsigned int>("ID", 78);
-  Cell dropLocation;
-  dropLocation.SetProperty<unsigned int>("ID", 194);
+//  Cell pickupLocation;
+  Cell::CellPtr pickupLocation = Cell::CellPtr(new Cell());
+  pickupLocation->SetProperty<unsigned int>("ID", 78);
+  Cell::CellPtr dropLocation = Cell::CellPtr(new Cell());
+  dropLocation->SetProperty<unsigned int>("ID", 194);
 
   // create a test job with a dummy ID and making the job available in the job list
   Job::Ptr testJob = Job::Create(1);

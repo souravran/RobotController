@@ -21,7 +21,7 @@ class IPathPlanner {
   typedef std::shared_ptr<IPathPlanner> Ptr;
   virtual ~IPathPlanner() {}
 
-  virtual IMapServer::Path GetPath(IMapServer::CellPtr pStartLocation, IMapServer::CellPtr pTargetLocation) = 0;
+  virtual IMapServer::Path GetPath(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation) = 0;
 };
 
 }  // namespace accmetnavigation

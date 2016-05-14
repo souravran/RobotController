@@ -34,35 +34,37 @@ void Job::SetID(int pJobID) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
-Job::LocationPtr Job::GetPickupLocation() {
+Cell::CellPtr Job::GetPickupLocation() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
   return mPickupLocation;
 }
 
-void Job::SetPickupLocation(Cell pPickupLocation) {
+void Job::SetPickupLocation(Cell::CellPtr pPickupLocation) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  mPickupLocation->SetProperty<unsigned int>("ID", pPickupLocation.GetProperty<unsigned int>("ID", 0));
+//  mPickupLocation->SetProperty<unsigned int>("ID", pPickupLocation->GetProperty<unsigned int>("ID", 0));
+  mPickupLocation = pPickupLocation;
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
-Job::LocationPtr Job::GetDropLocation() {
+Cell::CellPtr Job::GetDropLocation() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
   return mDropLocation;
 }
 
-void Job::SetDropLocation(Cell pDropLocation) {
+void Job::SetDropLocation(Cell::CellPtr pDropLocation) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  mDropLocation->SetProperty<unsigned int>("ID", pDropLocation.GetProperty<unsigned int>("ID", 0));
+//  mDropLocation->SetProperty<unsigned int>("ID", pDropLocation->GetProperty<unsigned int>("ID", 0));
+  mDropLocation = pDropLocation;
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 Job::Job(int pJobID)
     : mLogger(log4cpp::Category::getInstance("Job")),
       mJobID(pJobID),
-      mPickupLocation(new Cell),
-      mDropLocation(new Cell) {
+      mPickupLocation(),
+      mDropLocation() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }

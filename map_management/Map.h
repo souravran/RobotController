@@ -29,7 +29,7 @@ class Map {
  public:
   typedef std::shared_ptr<Map> Ptr;
 
-  typedef boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS, Cell> Graph;
+  typedef boost::adjacency_list<boost::listS, boost::vecS, boost::undirectedS, Cell::CellPtr> Graph;
   typedef boost::graph_traits<Graph>::vertex_descriptor Vertex;
 
   static Ptr Create(std::string pGraphFilePath);
@@ -46,6 +46,7 @@ class Map {
  private:
   log4cpp::Category& mLogger;
   Graph mGraph;
+  std::shared_ptr<Vertex> mVertex;
   boost::dynamic_properties mPropertiesRead;
   boost::dynamic_properties mPropertiesWrite;
   // this is probably useless since the graph stores everything,

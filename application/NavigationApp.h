@@ -14,6 +14,7 @@
 #include <motion_controller/IPathExecuter.h>
 #include <map_management/IMapServer.h>
 
+#include <application/RobotManager.h>
 //-----------------------------------------------------------------------------
 // Global Includes
 //-----------------------------------------------------------------------------
@@ -39,16 +40,7 @@ class NavigationApp {
 
  private:
   log4cpp::Category &mLogger;          //!< For logging messages to the console
-  boost::asio::io_service mIOService;  //!< Used as the facilitator for operating on asynchronous services
-  std::string mSimHostAddrs;           //!< The host IP-address for socket connection with simulation engine
-  int16_t mSimDestinationPort;         //!< The destination port for socket connection with simulation engine
-  IMapServer::Ptr mMapProxyClient;
-  IRobotPlatform::Ptr mRobotPlatform;  //!< Platform for handling robot operations
-  IJobSimulator::Ptr mJobSimulator;
-  IJobRequester::Ptr mJobRequester;
-  IPathPlanner::Ptr mPathPlannerAStar;
-  IPathExecuter::Ptr mPathExecuter;
-  RobotBehaviorController::Ptr mRobotController;  //!< The controller for implementing behavioral-FSM
+  RobotManager::Ptr mRobotManager;
 };
 }  // namespace accmetnavigation
 #endif  // APPLICATION_NAVIGATIONAPP_H_

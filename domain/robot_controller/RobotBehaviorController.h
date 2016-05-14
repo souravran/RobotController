@@ -33,17 +33,27 @@ class RobotBehaviorController {
   typedef std::shared_ptr<RobotBehaviorController> Ptr;
 
   static Ptr Create(IRobotPlatform::Ptr pRobotPlatform, IPathExecuter::Ptr pMotionExecuter,
-                    IJobRequester::Ptr pJobRequester, IPathPlanner::Ptr pPathPlanner);
+                    IJobRequester::Ptr pJobRequester, IPathPlanner::Ptr pPathPlanner, std::string pRobotName);
   virtual ~RobotBehaviorController();
+
+  // holds high level states
+  enum class RobotManageStates {
+    NONE,           //!< not a legal state
+    ERROR,          //!< if there is an error in the process
+    HANDLING
+  };
 
   /*! The method used for updating the behavioral states of the robot.
    *  This method gets called repeatedly and execute current robot-behavioral state.
    */
   void Update();
 
+  RobotManageStates GetRobotManageState();
+
+
  protected:
   RobotBehaviorController(IRobotPlatform::Ptr pRobotPlatform, IPathExecuter::Ptr pMotionExecuter,
-                          IJobRequester::Ptr pJobRequester, IPathPlanner::Ptr pPathPlanner);
+                          IJobRequester::Ptr pJobRequester, IPathPlanner::Ptr pPathPlanner, std::string pRobotName);
 
  private:
   log4cpp::Category &mLogger;          //!< For logging messages to the console
@@ -54,10 +64,12 @@ class RobotBehaviorController {
   Job::Ptr mCurrentJob;
   State mState;                         //!< The behavioral state of the robot
   boost::posix_time::ptime mStartTime;  //!< Used to track time for any waiting-state operation
-  IMapServer::CellPtr mCurrentLocation;
-  IMapServer::CellPtr mTargetLocation;
+  Cell::CellPtr mCurrentLocation;
+  Cell::CellPtr mTargetLocation;
   IMapServer::Path mPlannedPath;
   double mRelativeDistance;
+  std::string mRobotName;
+  RobotManageStates mManageStates;
 
   /*! Used for handling the behavioral finite-state-machine.
    *  In every update, it calls the current state method.

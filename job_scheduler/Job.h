@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------------
 // Project Includes
 //-----------------------------------------------------------------------------
+#include <map_management/IMapServer.h> // remove
 #include <map_management/Cell.h>
 
 //-----------------------------------------------------------------------------
@@ -22,17 +23,17 @@ namespace accmetnavigation {
 class Job {
  public:
   typedef std::shared_ptr<Job> Ptr;
-  typedef std::shared_ptr<Cell> LocationPtr;
+  typedef std::shared_ptr<Cell::CellPtr> LocationPtr;
 
   static Ptr Create(int pJobID);
   virtual ~Job();
 
   int GetID();
   void SetID(int pJobID);
-  Job::LocationPtr GetPickupLocation();
-  void SetPickupLocation(Cell pPickupLocation);
-  Job::LocationPtr GetDropLocation();
-  void SetDropLocation(Cell pDropLocation);
+  Cell::CellPtr GetPickupLocation();
+  void SetPickupLocation(Cell::CellPtr pPickupLocation);
+  Cell::CellPtr GetDropLocation();
+  void SetDropLocation(Cell::CellPtr pDropLocation);
 
  protected:
   explicit Job(int pJobID);
@@ -40,8 +41,8 @@ class Job {
  private:
   log4cpp::Category& mLogger;
   int mJobID;
-  LocationPtr mPickupLocation;
-  LocationPtr mDropLocation;
+  Cell::CellPtr mPickupLocation;
+  Cell::CellPtr mDropLocation;
 };
 
 } /* namespace accmetnavigation */

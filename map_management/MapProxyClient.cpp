@@ -36,10 +36,10 @@ bool MapProxyClient::UpdateOccupancy(IMapServer::Path pUnreservedPath) {
   boost::graph_traits<Map::Graph>::vertex_iterator vertexStart, vertexEnd, vertexItr;
   boost::tie(vertexStart, vertexEnd) = boost::vertices(mGraph);
   for (vertexItr = vertexStart; vertexStart != vertexEnd; vertexStart = vertexItr) {
-    if ((mGraph[*vertexItr].GetProperty<bool>("Navigable", false)) == true) {
+    if ((mGraph[*vertexItr]->GetProperty<bool>("Navigable", false)) == true) {
       for (auto cell : pUnreservedPath) {
-        if (cell.GetProperty<unsigned int>("ID", 0) == mGraph[*vertexItr].GetProperty<unsigned int>("ID", 0)) {
-          if (!(mGraph[*vertexItr].SetProperty<bool>("Occupancy", true))) {
+        if (cell->GetProperty<unsigned int>("ID", 0) == mGraph[*vertexItr]->GetProperty<unsigned int>("ID", 0)) {
+          if (!(mGraph[*vertexItr]->SetProperty<bool>("Occupancy", true))) {
             return false;
           }
         }
@@ -52,14 +52,14 @@ bool MapProxyClient::UpdateOccupancy(IMapServer::Path pUnreservedPath) {
   return true;
 }
 
-std::list<Cell> MapProxyClient::GetNeighboringCells(Cell pLocation) {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY " << pLocation.GetProperty<unsigned int>("X", 0);
+std::list<Cell::CellPtr> MapProxyClient::GetNeighboringCells(Cell::CellPtr pLocation) {
+  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY " << pLocation->GetProperty<unsigned int>("X", 0);
 
-  std::list<Cell> retNeighbors;
+  std::list<Cell::CellPtr> retNeighbors;
   unsigned int X, X1, X2;
   unsigned int Y, Y1, Y2;
-  X = pLocation.GetProperty<unsigned int>("X", 0);
-  Y = pLocation.GetProperty<unsigned int>("Y", 0);
+  X = pLocation->GetProperty<unsigned int>("X", 0);
+  Y = pLocation->GetProperty<unsigned int>("Y", 0);
   X1 = X - 1;
   X2 = X + 1;
   Y1 = Y - 1;
@@ -68,15 +68,15 @@ std::list<Cell> MapProxyClient::GetNeighboringCells(Cell pLocation) {
   boost::graph_traits<Map::Graph>::vertex_iterator vertexStart, vertexEnd, vertexItr;
   boost::tie(vertexStart, vertexEnd) = boost::vertices(mGraph);
   for (vertexItr = vertexStart; vertexStart != vertexEnd; vertexStart = vertexItr) {
-    if ((mGraph[*vertexItr].GetProperty<bool>("Navigable", false)) == true) {
-      if (((mGraph[*vertexItr].GetProperty<unsigned int>("X", 0) == X) &&
-           (mGraph[*vertexItr].GetProperty<unsigned int>("Y", 0) == Y1)) ||
-          ((mGraph[*vertexItr].GetProperty<unsigned int>("X", 0) == X) &&
-           (mGraph[*vertexItr].GetProperty<unsigned int>("Y", 0) == Y2)) ||
-          ((mGraph[*vertexItr].GetProperty<unsigned int>("X", 0) == X1) &&
-           (mGraph[*vertexItr].GetProperty<unsigned int>("Y", 0) == Y)) ||
-          ((mGraph[*vertexItr].GetProperty<unsigned int>("X", 0) == X2) &&
-           (mGraph[*vertexItr].GetProperty<unsigned int>("Y", 0) == Y))) {
+    if ((mGraph[*vertexItr]->GetProperty<bool>("Navigable", false)) == true) {
+      if (((mGraph[*vertexItr]->GetProperty<unsigned int>("X", 0) == X) &&
+           (mGraph[*vertexItr]->GetProperty<unsigned int>("Y", 0) == Y1)) ||
+          ((mGraph[*vertexItr]->GetProperty<unsigned int>("X", 0) == X) &&
+           (mGraph[*vertexItr]->GetProperty<unsigned int>("Y", 0) == Y2)) ||
+          ((mGraph[*vertexItr]->GetProperty<unsigned int>("X", 0) == X1) &&
+           (mGraph[*vertexItr]->GetProperty<unsigned int>("Y", 0) == Y)) ||
+          ((mGraph[*vertexItr]->GetProperty<unsigned int>("X", 0) == X2) &&
+           (mGraph[*vertexItr]->GetProperty<unsigned int>("Y", 0) == Y))) {
         retNeighbors.push_back(mGraph[*vertexItr]);
       }
     }
@@ -88,7 +88,7 @@ std::list<Cell> MapProxyClient::GetNeighboringCells(Cell pLocation) {
 }
 
 MapProxyClient::MapProxyClient(std::string pGraphFilePath)
-    : mLogger(log4cpp::Category::getInstance("MapProxyClient")), mMap(), mGraph(0) {
+    : mLogger(log4cpp::Category::getInstance("MapProxyClient")), mMap(0), mGraph(0) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   mMap = Map::Create(pGraphFilePath);

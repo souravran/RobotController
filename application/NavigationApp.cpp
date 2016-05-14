@@ -23,27 +23,20 @@ namespace accmetnavigation {
 #define WAIT_IN_MILISECONDS 500
 
 NavigationApp::NavigationApp(const int& argc, char* argv[])
-    : mLogger(log4cpp::Category::getInstance("NavigationApp")),
-      mIOService(),
-      mSimHostAddrs("127.0.0.1"),
-      mSimDestinationPort(4000),
-      mMapProxyClient(),
-      mRobotPlatform(),
-      mJobSimulator(),
-      mJobRequester(),
-      mPathPlannerAStar(),
-      mPathExecuter(),
-      mRobotController() {
+: mLogger(log4cpp::Category::getInstance("NavigationApp"))
+, mRobotManager() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   // TODO(ssenapati): need to check for file availability and relative path
-  mMapProxyClient = MapProxyClient::Create("../MapGraph.dot");
-  mRobotPlatform = RobotPlatformSim::Create(mIOService, mSimHostAddrs, mSimDestinationPort);
-  mJobSimulator = JobSimulator::Create();
-  mJobRequester = JobRequesterSimple::Create(mJobSimulator);
-  mPathPlannerAStar = PathPlannerAStar::Create(mMapProxyClient);
-  mPathExecuter = PathExecuter::Create(mMapProxyClient, mRobotPlatform);
-  mRobotController = RobotBehaviorController::Create(mRobotPlatform, mPathExecuter, mJobRequester, mPathPlannerAStar);
+
+  mRobotManager = RobotManager::Create(argc, argv);
+//  mMapProxyClient = MapProxyClient::Create("../MapGraph.dot");
+//  mRobotPlatform = RobotPlatformSim::Create(mIOService, mSimHostAddrs, mSimDestinationPort);
+//  mJobSimulator = JobSimulator::Create();
+//  mJobRequester = JobRequesterSimple::Create(mJobSimulator);
+//  mPathPlannerAStar = PathPlannerAStar::Create(mMapProxyClient);
+//  mPathExecuter = PathExecuter::Create(mMapProxyClient, mRobotPlatform);
+//  mRobotController = RobotBehaviorController::Create(mRobotPlatform, mPathExecuter, mJobRequester, mPathPlannerAStar);
 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
@@ -55,12 +48,13 @@ NavigationApp::~NavigationApp() {
 
 void NavigationApp::Run() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  while (true) {
-    mRobotController->Update();
-    mRobotPlatform->Update();
-    mPathExecuter->Update();
-    usleep(WAIT_IN_MILISECONDS * 1000);
-  }
+//  while (true) {
+//    mRobotController->Update();
+//    mRobotPlatform->Update();
+//    mPathExecuter->Update();
+//    usleep(WAIT_IN_MILISECONDS * 1000);
+//  }
+  mRobotManager->RunRobots();
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 }  // namespace accmetnavigation

@@ -40,7 +40,7 @@ struct PriorityQueue {
   }
 };
 
-// std::unordered_map<IMapServer::CellPtr, IMapServer::CellPtr> came_from;
+// std::unordered_map<Cell::CellPtr, Cell::CellPtr> came_from;
 // std::unordered_map<typename Cell, int> cost_so_far;
 
 class PathPlannerAStar : public IPathPlanner {
@@ -50,7 +50,7 @@ class PathPlannerAStar : public IPathPlanner {
   static Ptr Create(IMapServer::Ptr pMapProxy);
   virtual ~PathPlannerAStar();
 
-  virtual IMapServer::Path GetPath(IMapServer::CellPtr pStartLocation, IMapServer::CellPtr pTargetLocation);
+  virtual IMapServer::Path GetPath(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation);
 
  protected:
   explicit PathPlannerAStar(IMapServer::Ptr pMapProxy);
@@ -60,23 +60,19 @@ class PathPlannerAStar : public IPathPlanner {
   IMapServer::Ptr mMapProxyClient;
   Map::Graph mGraph;
   IMapServer::Path mPath;
-  IMapServer::CellPtr mStartCell;
-  IMapServer::CellPtr mTargetCell;
-  std::map<double, IMapServer::CellPtr> FScore;
-  std::vector<IMapServer::CellPtr> openSet;
+  Cell::CellPtr mStartCell;
+  Cell::CellPtr mTargetCell;
+  std::map<double, Cell::CellPtr> FScore;
+  std::vector<Cell::CellPtr> openSet;
 
-  std::unordered_map<IMapServer::CellPtr, IMapServer::CellPtr> came_from;
-  std::unordered_map<IMapServer::CellPtr, double> cost_so_far;
+  std::unordered_map<Cell::CellPtr, Cell::CellPtr> came_from;
+  std::unordered_map<Cell::CellPtr, double> cost_so_far;
 
-  double HeuristicCostEstimate(IMapServer::CellPtr pStartLocation, IMapServer::CellPtr pTargetLocation);
-  void ReconstructPath(std::map<IMapServer::CellPtr, IMapServer::CellPtr> pCameFrom,
-                       IMapServer::CellPtr pTargetLocation);
-  IMapServer::CellPtr GetLowestScoreNode();
+  double HeuristicCostEstimate(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation);
+  IMapServer::Path ReconstructPath(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation, std::unordered_map<Cell::CellPtr, Cell::CellPtr> pCameFrom);
+  Cell::CellPtr GetLowestScoreNode();
 
-  template <typename Graph>
-  void a_star_search(const Graph& graph, typename Graph::Location start, typename Graph::Location goal,
-                     std::unordered_map<typename Graph::Location, typename Graph::Location>& came_from,
-                     std::unordered_map<typename Graph::Location, int>& cost_so_far);
+  void a_star_search(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation);
 };
 
 } /* namespace accmetnavigation */

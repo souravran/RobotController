@@ -26,7 +26,7 @@ class MapProxyClient : public IMapServer {
 
   virtual Map::Graph GetMapGraph();
   virtual bool UpdateOccupancy(IMapServer::Path pUnreservedPath);
-  virtual std::list<Cell> GetNeighboringCells(Cell pLocation);
+  virtual std::list<Cell::CellPtr> GetNeighboringCells(Cell::CellPtr pLocation);
 
  protected:
   explicit MapProxyClient(std::string pGraphFilePath);

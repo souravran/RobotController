@@ -22,6 +22,7 @@ namespace accmetnavigation {
  */
 class Cell {
  public:
+  typedef std::shared_ptr<Cell> CellPtr;
   Cell();
   virtual ~Cell();
 

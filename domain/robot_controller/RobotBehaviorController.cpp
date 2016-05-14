@@ -19,44 +19,45 @@ namespace accmetnavigation {
 RobotBehaviorController::Ptr RobotBehaviorController::Create(IRobotPlatform::Ptr pRobotPlatform,
                                                              IPathExecuter::Ptr pMotionExecuter,
                                                              IJobRequester::Ptr pJobRequester,
-                                                             IPathPlanner::Ptr pPathPlanner) {
+                                                             IPathPlanner::Ptr pPathPlanner,
+                                                             std::string pRobotName) {
   RobotBehaviorController::Ptr retVal = RobotBehaviorController::Ptr(
-      new RobotBehaviorController(pRobotPlatform, pMotionExecuter, pJobRequester, pPathPlanner));
+      new RobotBehaviorController(pRobotPlatform, pMotionExecuter, pJobRequester, pPathPlanner, pRobotName));
   return retVal;
 }
 
 RobotBehaviorController::~RobotBehaviorController() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotBehaviorController::Update() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    HandleFSM();
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+}
 
-  HandleFSM();
-
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+RobotBehaviorController::RobotManageStates RobotBehaviorController::GetRobotManageState() {
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    return mManageStates;
 }
 
 void RobotBehaviorController::HandleFSM() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-
-  (this->*mState)();
-
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    (this->*mState)();
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotBehaviorController::SetState(State pState) {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-
-  mState = pState;
-
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mState = pState;
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotBehaviorController::StateInit() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-
+  mLogger << log4cpp::Priority::DEBUG << __func__ << ": *********************************** " << mRobotName;
   if (mRobotPlatform->GetState() == MotionStates::UNINITIALIZED) {
     SetState(&RobotBehaviorController::StateHoming);
   } else if (mRobotPlatform->GetState() == MotionStates::INITIALIZING) {
@@ -91,7 +92,7 @@ void RobotBehaviorController::StateWaitHoming() {
     SetState(&RobotBehaviorController::StateOutOfService);
   } else {
     if (mRobotPlatform->GetState() == MotionStates::INITIALIZED) {
-      mLogger << log4cpp::Priority::DEBUG << __func__ << ": Homing done in "
+      mLogger << log4cpp::Priority::DEBUG << __func__ <<  ": "<< mRobotName << " Homing done in "
               << boost::posix_time::microsec_clock::local_time() - mStartTime << " Seconds";
 
       // we need the current robot location (Cell) for requesting Job and planing path till the pick-up location
@@ -127,6 +128,9 @@ void RobotBehaviorController::StateRequestJob() {
 
 void RobotBehaviorController::StateOutOfService() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+  // if the robot is error state, lets propagate the error state to the RobotManager
+  // by setting the RobotManageStates to error
+  mManageStates = RobotManageStates::ERROR;
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
@@ -198,33 +202,38 @@ void RobotBehaviorController::StateExecutePath() {
 }
 
 void RobotBehaviorController::StateCheckPathExecution() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  if (mRobotPlatform->GetState() == MotionStates::MOVING) {
-    mPathExecuter->RequestState(PathExecutionStates::EXECUTE_PATH);
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot has started moving";
-    SetState(&RobotBehaviorController::StateWaitPathExecution);
-  } else {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ": Checking if robot is moving";
-  }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    if (mRobotPlatform->GetState() == MotionStates::MOVING) {
+        mPathExecuter->RequestState(PathExecutionStates::EXECUTE_PATH);
+        mLogger << log4cpp::Priority::DEBUG << __func__ <<  ": "<< mRobotName << " Robot has started moving";
+        SetState(&RobotBehaviorController::StateWaitPathExecution);
+    }
+    else {
+        mLogger << log4cpp::Priority::DEBUG << __func__ << ": Checking if robot is moving";
+    }
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotBehaviorController::StateWaitPathExecution() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  if (mRobotPlatform->GetState() == MotionStates::MOVING) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot moving to the target ...";
-  } else if (mRobotPlatform->GetState() == MotionStates::STOPPED) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot has stopped moving";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    if (mRobotPlatform->GetState() == MotionStates::MOVING) {
+        // once the robot starts moving, that means it has left the initialization area
+        // and hence we set the RobotManageStates to HANDLING, so that other robot starts initialization
+        mManageStates = RobotManageStates::HANDLING;
+        mLogger << log4cpp::Priority::DEBUG << __func__ << ": "<< mRobotName << " Robot moving to the target ...";
+    }
+    else if (mRobotPlatform->GetState() == MotionStates::STOPPED) {
+        mLogger << log4cpp::Priority::DEBUG << __func__ <<  ": "<< mRobotName << " Robot has stopped moving";
 
-    // when the robot is stopped, check if it is in target location
-    // once the robot at target location, then we need to execute the script
-    SetState(&RobotBehaviorController::StateExecuteScript);
-
-  } else if (mRobotPlatform->GetState() == MotionStates::ERROR) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << " Error in robot path execution !!";
-    SetState(&RobotBehaviorController::StateOutOfService);
-  }
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+        // when the robot is stopped, check if it is in target location
+        // once the robot at target location, then we need to execute the script
+        SetState(&RobotBehaviorController::StateExecuteScript);
+    }
+    else if (mRobotPlatform->GetState() == MotionStates::ERROR) {
+        mLogger << log4cpp::Priority::DEBUG << __func__ << " Error in robot path execution !!";
+        SetState(&RobotBehaviorController::StateOutOfService);
+    }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotBehaviorController::StateExecuteScript() {
@@ -246,19 +255,21 @@ void RobotBehaviorController::StateExecuteScript() {
 }
 
 RobotBehaviorController::RobotBehaviorController(IRobotPlatform::Ptr pRobotPlatform, IPathExecuter::Ptr pMotionExecuter,
-                                                 IJobRequester::Ptr pJobRequester, IPathPlanner::Ptr pPathPlanner)
-    : mLogger(log4cpp::Category::getInstance("RobotBehaviorController")),
-      mRobotPlatform(pRobotPlatform),
-      mPathExecuter(pMotionExecuter),
-      mJobRequesterSimple(pJobRequester),
-      mPathPlanner(pPathPlanner),
-      mCurrentJob(0),
-      mState(0),
-      mStartTime(),
-      mCurrentLocation(new Cell),
-      mTargetLocation(new Cell),
-      mPlannedPath(),
-      mRelativeDistance(0) {
+                                                 IJobRequester::Ptr pJobRequester, IPathPlanner::Ptr pPathPlanner, std::string pRobotName)
+: mLogger(log4cpp::Category::getInstance("RobotBehaviorController"))
+, mRobotPlatform(pRobotPlatform)
+, mPathExecuter(pMotionExecuter)
+, mJobRequesterSimple(pJobRequester)
+, mPathPlanner(pPathPlanner)
+, mCurrentJob(0)
+, mState(0)
+, mStartTime()
+, mCurrentLocation(new Cell)
+, mTargetLocation(new Cell)
+, mPlannedPath()
+, mRelativeDistance(0)
+, mManageStates(RobotManageStates::NONE)
+, mRobotName(pRobotName) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   SetState(&RobotBehaviorController::StateInit);
