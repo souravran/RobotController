@@ -65,14 +65,12 @@ class PathPlannerAStar : public IPathPlanner {
   std::map<double, Cell::CellPtr> FScore;
   std::vector<Cell::CellPtr> openSet;
 
-  std::unordered_map<Cell::CellPtr, Cell::CellPtr> came_from;
-  std::unordered_map<Cell::CellPtr, double> cost_so_far;
+  std::unordered_map<Cell::CellPtr, Cell::CellPtr> mCameFromList;
+  std::unordered_map<Cell::CellPtr, double> mCostSoFarStore;
 
   double HeuristicCostEstimate(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation);
   IMapServer::Path ReconstructPath(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation, std::unordered_map<Cell::CellPtr, Cell::CellPtr> pCameFrom);
-  Cell::CellPtr GetLowestScoreNode();
-
-  void a_star_search(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation);
+  void ConductSearch(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation);
 };
 
 } /* namespace accmetnavigation */

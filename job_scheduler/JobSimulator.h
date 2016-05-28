@@ -21,7 +21,7 @@ namespace accmetnavigation {
 class JobSimulator : public IJobSimulator {
  public:
   typedef std::shared_ptr<JobSimulator> Ptr;
-  static Ptr Create();
+  static Ptr Create(IMapServer::Ptr pMapProxyClient);
   virtual ~JobSimulator();
 
   virtual std::list<Job::Ptr> GetAllJobs();
@@ -29,13 +29,16 @@ class JobSimulator : public IJobSimulator {
   virtual void SetJobCompleted(int pJobID);
 
  protected:
-  JobSimulator();
+  JobSimulator(IMapServer::Ptr pMapProxyClient);
 
  private:
   log4cpp::Category& mLogger;
+  IMapServer::Ptr mMapProxyClient;
   std::list<Job::Ptr> mJobsList;
   std::list<Job::Ptr> mJobsInProgress;
   std::list<Job::Ptr> mJobsCompleted;
+
+  void LoadJobs();
 };
 } /* namespace accmetnavigation */
 #endif  // JOB_SCHEDULER_JOBSIMULATOR_H_

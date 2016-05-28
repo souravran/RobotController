@@ -31,6 +31,7 @@ class IMapServer {
   virtual bool UpdateOccupancy(IMapServer::Path pUnreservedPath) = 0;
   virtual bool ReleaseOccupancy(IMapServer::Path pReservedPath) = 0;
   virtual std::list<Cell::CellPtr> GetNeighboringCells(Cell::CellPtr pLocation) = 0;
+  virtual Cell::CellPtr GetCellByID(int pID) = 0;
 };
 }  // namespace accmetnavigation
 #endif  // MAP_MANAGEMENT_IMAPSERVER_H_

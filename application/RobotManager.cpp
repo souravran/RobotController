@@ -41,7 +41,7 @@ RobotManager::RobotManager(const int &argc, char *argv[])
 , mRobotStore(){
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
     mMapProxyClient = MapProxyClient::Create("../MapGraph.dot");
-    mJobSimulator = JobSimulator::Create();
+    mJobSimulator = JobSimulator::Create(mMapProxyClient);
     mJobRequester = JobRequesterSimple::Create(mJobSimulator);
 //    int t = 1;
     std::vector<std::string> roboNameStore;

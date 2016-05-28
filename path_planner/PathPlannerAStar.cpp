@@ -59,12 +59,12 @@ IMapServer::Path PathPlannerAStar::GetPath(Cell::CellPtr pStartLocation, Cell::C
           << pTargetLocation->GetProperty<unsigned int>("X", 0) << " , "
           << pTargetLocation->GetProperty<unsigned int>("Y", 0) << "]";
 
-    came_from.clear();
-    cost_so_far.clear();
+    mCameFromList.clear();
+    mCostSoFarStore.clear();
     mPath.clear();
-    a_star_search(pStartLocation, pTargetLocation);
-    if(came_from.count(pStartLocation)) {
-        mPath = ReconstructPath(pStartLocation, pTargetLocation, came_from);
+    ConductSearch(pStartLocation, pTargetLocation);
+    if(mCameFromList.count(pStartLocation)) {
+        mPath = ReconstructPath(pStartLocation, pTargetLocation, mCameFromList);
     }
 
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": The path obtained is as follows     : ";
@@ -78,57 +78,24 @@ IMapServer::Path PathPlannerAStar::GetPath(Cell::CellPtr pStartLocation, Cell::C
   return mPath;
 }
 
-Cell::CellPtr PathPlannerAStar::GetLowestScoreNode() {
-  std::map<double, Cell::CellPtr>::iterator it_min = FScore.begin();
-
-  mLogger << log4cpp::Priority::DEBUG << __func__ << "The cells in FScore list and the costs :";
-  for (auto ne : FScore) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ":  [" << ne.second->GetProperty<unsigned int>("X", 0) << " , "
-            << ne.second->GetProperty<unsigned int>("Y", 0) << "  --> " << ne.first;
-  }
-
-  Cell::CellPtr current(new Cell);
-  mLogger << log4cpp::Priority::DEBUG << __func__ << " The OpenSet cells are :";
-  for (auto openCell : openSet) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ":  [" << openCell->GetProperty<unsigned int>("X", 0) << " , "
-            << openCell->GetProperty<unsigned int>("Y", 0) << " ]";
-    if (openCell->GetProperty<unsigned int>("ID", 0) == it_min->second->GetProperty<unsigned int>("ID", 0)) {
-      current = openCell;
-    }
-  }
-  return current;
-}
-
-void PathPlannerAStar::a_star_search(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation) {
+void PathPlannerAStar::ConductSearch(Cell::CellPtr pStartLocation, Cell::CellPtr pTargetLocation) {
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-
-//    mLogger << log4cpp::Priority::DEBUG << __func__ << ": The start location coordinate is : ["
-//          << pStartLocation->GetProperty<unsigned int>("X", 0) << " , "
-//          << pStartLocation->GetProperty<unsigned int>("Y", 0) << "]";
-//
-//    mLogger << log4cpp::Priority::DEBUG << __func__ << ": The target location coordinate is : ["
-//          << pTargetLocation->GetProperty<unsigned int>("X", 0) << " , "
-//          << pTargetLocation->GetProperty<unsigned int>("Y", 0) << "]";
-
     PriorityQueue<Cell::CellPtr> frontier;
     frontier.put(pStartLocation, 0);
-    came_from[pStartLocation] = pStartLocation;
-    cost_so_far[pStartLocation] = 0;
-
+    mCameFromList[pStartLocation] = pStartLocation;
+    mCostSoFarStore[pStartLocation] = 0;
     while (!frontier.empty()) {
         auto current = frontier.get();
-
         if (current == pTargetLocation) {
           break;
         }
-
         for (auto next : mMapProxyClient->GetNeighboringCells(current)) {
-            double new_cost = cost_so_far[current] + 1;
-            if (!cost_so_far.count(next) || new_cost < cost_so_far[next]) {
-                cost_so_far[next] = new_cost;
+            double new_cost = mCostSoFarStore[current] + 1;
+            if (!mCostSoFarStore.count(next) || new_cost < mCostSoFarStore[next]) {
+                mCostSoFarStore[next] = new_cost;
                 int priority = new_cost + HeuristicCostEstimate(next, pTargetLocation);
                 frontier.put(next, priority);
-                came_from[next] = current;
+                mCameFromList[next] = current;
           }
         }
       }
@@ -168,7 +135,7 @@ IMapServer::Path PathPlannerAStar::ReconstructPath(Cell::CellPtr pStartLocation,
     Cell::CellPtr currentLoc = pTargetLocation;
     retPath.push_back(currentLoc);
     while (currentLoc != pStartLocation) {
-        currentLoc = came_from[currentLoc];
+        currentLoc = mCameFromList[currentLoc];
         retPath.push_back(currentLoc);
     }
     std::reverse(retPath.begin(), retPath.end());
@@ -178,16 +145,14 @@ IMapServer::Path PathPlannerAStar::ReconstructPath(Cell::CellPtr pStartLocation,
 }
 
 PathPlannerAStar::PathPlannerAStar(IMapServer::Ptr pMapProxy)
-    : mLogger(log4cpp::Category::getInstance("PathPlannerAStar")),
-      mMapProxyClient(pMapProxy),
-      mGraph(),
-      mPath(),
-      mStartCell(new Cell),
-      mTargetCell(new Cell),
-      FScore(),
-      openSet(),
-	  came_from(),
-	  cost_so_far() {
+: mLogger(log4cpp::Category::getInstance("PathPlannerAStar"))
+, mMapProxyClient(pMapProxy)
+, mGraph()
+, mPath()
+, mStartCell(new Cell)
+, mTargetCell(new Cell)
+, mCameFromList()
+, mCostSoFarStore() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }

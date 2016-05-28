@@ -52,7 +52,6 @@ std::deque<std::string>  PathExecuter::RequestRelativePath(IMapServer::Path pPat
               << c->GetProperty<unsigned int>("Y", 0) << "] ";
   }
 
-//  ProcessPath(pPath);
   // as currently the cells are considered to be unit length,
   // the relative distance is nothing but the number of cells in the path
   double relativeDistance = pPath.size();
@@ -223,7 +222,7 @@ std::deque<std::string>  PathExecuter::ProcessPath(IMapServer::Path pPath) {
     itr++;
     bool hasXStraightPath = false;
     bool hasYStraightPath = false;
-//    int countXStraightPath = 0;
+
     for(;itr != pPath.end();itr++) {
         x2 = (*itr)->GetProperty<unsigned int>("X", 0);
         y2 = (*itr)->GetProperty<unsigned int>("Y", 0);
@@ -241,10 +240,7 @@ std::deque<std::string>  PathExecuter::ProcessPath(IMapServer::Path pPath) {
                     cmd.push_back("s");
                     hasXStraightPath = false;
                 }
-//                else {
-                    cmd.push_back(motionDir+"1");
-//                }
-
+                cmd.push_back(motionDir+"1");
                 if(x2>x1) {
                     direction = "X";
                 }
@@ -252,11 +248,7 @@ std::deque<std::string>  PathExecuter::ProcessPath(IMapServer::Path pPath) {
                     direction = "mX";
                 }
                 if(JunctionCells.count((*itr)->GetProperty<unsigned int>("ID",0)) == 1) {
-//                    cmd.push_back("s");
-//                    cmd.push_back(motionDir+"1.5");
-//                    cmd.push_back("s");
                     hasXStraightPath = true;
-//                    countXStraightPath++;
                 }
             }
             else {
@@ -282,7 +274,6 @@ std::deque<std::string>  PathExecuter::ProcessPath(IMapServer::Path pPath) {
                      }
                  }
                  cmd.push_back(motionDir+"1.5");
-//                 cmd.push_back(motionDir+"1");
                  cmd.push_back("s");
             }
         }
@@ -304,11 +295,7 @@ std::deque<std::string>  PathExecuter::ProcessPath(IMapServer::Path pPath) {
                     direction = "mY";
                 }
                 if(JunctionCells.count((*itr)->GetProperty<unsigned int>("ID",0)) == 1) {
-//                    cmd.push_back("s");
-//                    cmd.push_back(motionDir+"1.5");
-//                    cmd.push_back("s");
                     hasYStraightPath = true;
-//                    countXStraightPath++;
                 }
             }
             else {
@@ -350,9 +337,7 @@ std::deque<std::string>  PathExecuter::ProcessPath(IMapServer::Path pPath) {
     for (auto c : cmd) {
         if((c == "l") || (c == "r") || (c == "s") || (c == "1.5") || (c == "-1.5")) {
             if(unit) {
-//                unit = unit+1.5;
                 newCmd.push_back(std::to_string(unit));
-//                newCmd.push_back("1.5");
                 unit = 0.0;
             }
             newCmd.push_back(c);
