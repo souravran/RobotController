@@ -48,6 +48,7 @@ class RobotPlatformSim : public RobotPlatformController {
   virtual void InitializationCheck();
   virtual void Stop();
   virtual void MoveRelative(double pRelativeDistance, double pVelocity);
+  virtual void SwitchDirection(std::string pDirection);
   virtual void MotionCheck();
 
   /*! The method used for writing a Telnet command for the simulation engine.

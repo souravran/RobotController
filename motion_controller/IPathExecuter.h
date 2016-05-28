@@ -20,6 +20,7 @@ enum class PathExecutionStates {
   NONE,   //!< not a legal state
   ERROR,  //!< if there is an error in the process
   EXECUTE_PATH,
+  REACHED,
   PICKUP,
   PICKUP_REACHED,
   DROP,
@@ -34,8 +35,10 @@ class IPathExecuter {
   virtual void Update() = 0;
   virtual PathExecutionStates GetState() = 0;
   virtual void RequestState(PathExecutionStates pRequestedState) = 0;
-  virtual double RequestRelativePath(IMapServer::Path pPath) = 0;
+  virtual std::deque<std::string> RequestRelativePath(IMapServer::Path pPath) = 0;
   virtual bool RequestReservePath(IMapServer::Path pUnreservedPath) = 0;
+  virtual bool RequestUnreservePath(IMapServer::Path pUnreservedPath) = 0;
+  virtual void RequestDirectionChange(std::string pDirection) = 0;
 };
 }  // namespace accmetnavigation
 #endif  // MOTION_CONTROLLER_IPATHEXECUTER_H_

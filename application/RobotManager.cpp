@@ -21,7 +21,7 @@
 namespace accmetnavigation {
 
 //! Wait time for iteratively updating the FSM
-#define WAIT_IN_MILISECONDS 500
+#define WAIT_IN_MILISECONDS 50000
 
 RobotManager::Ptr RobotManager::Create(const int &argc, char *argv[]) {
     RobotManager::Ptr retVal = RobotManager::Ptr(new RobotManager(argc, argv));
@@ -46,14 +46,14 @@ RobotManager::RobotManager(const int &argc, char *argv[])
 //    int t = 1;
     std::vector<std::string> roboNameStore;
     roboNameStore.push_back("DOXY");
-    roboNameStore.push_back("ADRIAN");
+//    roboNameStore.push_back("ADRIAN");
 
     // Robot creation and storing in container
 //    while(t--) {
         std::shared_ptr<RobotUnit> newRobot1 = std::shared_ptr<RobotUnit>(new RobotUnit(mMapProxyClient, mJobRequester, roboNameStore.at(0)));
         mRobotStore.push_back(newRobot1);
-        std::shared_ptr<RobotUnit> newRobot2 = std::shared_ptr<RobotUnit>(new RobotUnit(mMapProxyClient, mJobRequester, roboNameStore.at(1)));
-        mRobotStore.push_back(newRobot2);
+//        std::shared_ptr<RobotUnit> newRobot2 = std::shared_ptr<RobotUnit>(new RobotUnit(mMapProxyClient, mJobRequester, roboNameStore.at(1)));
+//        mRobotStore.push_back(newRobot2);
 //    }
 
 
@@ -67,13 +67,16 @@ void RobotManager::RunRobots() {
     std::vector<std::shared_ptr<RobotUnit>>::iterator itr;
 
     while(true) {
-        for(itr = mRobotStore.begin(); itr!=mRobotStore.end();) {
+        for(itr = mRobotStore.begin(); ;itr!=mRobotStore.end()) {
             itr->get()->Update();
-            if(itr->get()->mRobotController->GetRobotManageState()==RobotBehaviorController::RobotManageStates::HANDLING) {
+            if((itr->get()->mRobotController->GetRobotManageState()==RobotBehaviorController::RobotManageStates::HANDLING)
+               && (itr!=mRobotStore.end())) {
                 itr++;
             }
+            sleep(1);
         }
-        usleep(WAIT_IN_MILISECONDS * 10000);
+//        usleep(WAIT_IN_MILISECONDS * 1000000);
+        sleep(1);
     }
 }
 

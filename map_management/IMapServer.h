@@ -29,6 +29,7 @@ class IMapServer {
 
   virtual Map::Graph GetMapGraph() = 0;
   virtual bool UpdateOccupancy(IMapServer::Path pUnreservedPath) = 0;
+  virtual bool ReleaseOccupancy(IMapServer::Path pReservedPath) = 0;
   virtual std::list<Cell::CellPtr> GetNeighboringCells(Cell::CellPtr pLocation) = 0;
 };
 }  // namespace accmetnavigation

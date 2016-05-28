@@ -15,13 +15,21 @@
 namespace accmetnavigation {
 
 // current mapped graph from the simulation model is 16X16 grid
-const unsigned int RowNum = 16;
-const unsigned int ColumnNum = 16;
+const unsigned int RowNum = 23;
+const unsigned int ColumnNum = 18;
 
 // the navigable cells are identified from the simulation model grid,
 // and supplied for statically building the graph object
-static const int NavigableCells[] = {14,  30,  46,  62,  78,  94,  110, 126, 142, 141, 140, 139, 138, 137,
-                                     136, 135, 134, 133, 132, 131, 130, 146, 162, 178, 194, 210, 226, 242};
+static const int NavigableCells[] = {35, 53, 71, 89, 107, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+                                     120, 121, 122, 123, 124, 125, 128, 136, 143, 146, 154, 161, 164, 172,
+                                     179, 182, 190, 197, 200, 208, 215, 218, 226, 233, 236, 244, 251, 254,
+                                     255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268,
+                                     269, 272, 280, 287, 290, 305, 308, 316, 323, 326, 334, 341, 344, 352,
+                                     359, 362, 370, 377, 380, 388, 395, 398, 399, 400, 401, 402, 403, 404,
+                                     405, 406, 407, 408, 409, 410, 411, 412, 413};
+
+//static const int JunctionCells[] = {125,118,269,262,254,406};
+
 
 Map::Ptr Map::Create(std::string pGraphFilePath) {
   Map::Ptr retMap = Map::Ptr(new Map(pGraphFilePath));

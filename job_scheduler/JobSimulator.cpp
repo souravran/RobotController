@@ -66,16 +66,26 @@ JobSimulator::JobSimulator()
   // set arbitrary chosen couple of cells on the track-layout from simulation model as pickup and drop cells for a job,
   // the cell IDs are provided in order to identify the Cell while path planning
 //  Cell pickupLocation;
+
+  Cell::CellPtr pickupLocation2 = Cell::CellPtr(new Cell());
+  pickupLocation2->SetProperty<unsigned int>("ID", 120);
+  Cell::CellPtr dropLocation2 = Cell::CellPtr(new Cell());
+  dropLocation2->SetProperty<unsigned int>("ID", 323);
+
+  Job::Ptr testJobAnother = Job::Create(2);
+  testJobAnother->SetPickupLocation(pickupLocation2);
+  testJobAnother->SetDropLocation(dropLocation2);
+  mJobsList.push_back(testJobAnother);
+
   Cell::CellPtr pickupLocation = Cell::CellPtr(new Cell());
-  pickupLocation->SetProperty<unsigned int>("ID", 78);
+  pickupLocation->SetProperty<unsigned int>("ID", 266);
   Cell::CellPtr dropLocation = Cell::CellPtr(new Cell());
-  dropLocation->SetProperty<unsigned int>("ID", 194);
+  dropLocation->SetProperty<unsigned int>("ID", 208);
 
   // create a test job with a dummy ID and making the job available in the job list
   Job::Ptr testJob = Job::Create(1);
   testJob->SetPickupLocation(pickupLocation);
   testJob->SetDropLocation(dropLocation);
-
   mJobsList.push_back(testJob);
 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";

@@ -40,6 +40,12 @@ void RobotPlatformController::RequestMotion(double pRequestedRelativeDistance, d
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
+void RobotPlatformController::RequestDirection(std::string pDirection) {
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mDirection = pDirection;
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+}
+
 void RobotPlatformController::Update() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
   HandleFSM();
@@ -181,6 +187,7 @@ void RobotPlatformController::StateWaitInitialize() {
       mRequestedState = MotionStates::NONE;
       mRequestedRelativeDistance = 0;
       mRequestedVelocity = 0;
+      mDirection.clear();
       mCurrentMotionState = MotionStates::INITIALIZED;
 
       SetState(&RobotPlatformController::StateStopped);
@@ -230,23 +237,28 @@ void RobotPlatformController::StateHalted() {
 }
 
 void RobotPlatformController::StateStartMoving() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
-  ConnectionCheck();
-  HWStatusCheck();
-  if ((mHWStatusConnFlags & (CONN_FLAG | HW_STATUS_FLAG)) == (CONN_FLAG | HW_STATUS_FLAG)) {
-    if ((mRequestedRelativeDistance != 0) && (mRequestedVelocity > 0)) {
-      mRequestedState = MotionStates::NONE;
-      MoveRelative(mRequestedRelativeDistance, mRequestedVelocity);
-      SetState(&RobotPlatformController::StateMoving);
+    ConnectionCheck();
+    HWStatusCheck();
+    if ((mHWStatusConnFlags & (CONN_FLAG | HW_STATUS_FLAG)) == (CONN_FLAG | HW_STATUS_FLAG)) {
+        if(!mDirection.empty()) {
+            SwitchDirection(mDirection);
+            mDirection.clear();
+        }
+        if ((mRequestedRelativeDistance != 0) && (mRequestedVelocity > 0)) {
+            mRequestedState = MotionStates::NONE;
+            MoveRelative(mRequestedRelativeDistance, mRequestedVelocity);
+            SetState(&RobotPlatformController::StateMoving);
+        }
     }
-
-  } else if ((mHWStatusConnFlags & CONN_FLAG) == 0) {
-    SetState(&RobotPlatformController::StateConnect);
-  } else if ((mHWStatusConnFlags & HW_STATUS_FLAG) == 0) {
-    SetState(&RobotPlatformController::StateHWStatus);
-  }
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    else if ((mHWStatusConnFlags & CONN_FLAG) == 0) {
+        SetState(&RobotPlatformController::StateConnect);
+    }
+    else if ((mHWStatusConnFlags & HW_STATUS_FLAG) == 0) {
+        SetState(&RobotPlatformController::StateHWStatus);
+    }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotPlatformController::StateMoving() {
@@ -302,13 +314,14 @@ void RobotPlatformController::StateHWError() {
 }
 
 RobotPlatformController::RobotPlatformController()
-    : mLogger(log4cpp::Category::getInstance("RobotPlatformController")),
-      mCurrentMotionState(MotionStates::NONE),
-      mPlatformState(0),
-      mHWStatusConnFlags(0),
-      mStartTime(),
-      mRequestedRelativeDistance(0),
-      mRequestedVelocity(0) {
+: mLogger(log4cpp::Category::getInstance("RobotPlatformController"))
+, mCurrentMotionState(MotionStates::NONE)
+, mPlatformState(0)
+, mHWStatusConnFlags(0)
+, mStartTime()
+, mRequestedRelativeDistance(0)
+, mRequestedVelocity(0)
+, mDirection() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   SetState(&RobotPlatformController::StateInit);

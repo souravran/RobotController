@@ -12,7 +12,7 @@
 
 namespace accmetnavigation {
 
-#define CELL_LENGTH 2.2
+#define CELL_LENGTH 8.26
 
 RobotPlatformSim::Ptr RobotPlatformSim::Create(boost::asio::io_service& pIOService, std::string pSimHostAddrs,
                                                int16_t pSimDestinationPort) {
@@ -125,7 +125,7 @@ void RobotPlatformSim::MoveRelative(double pRelativeDistance, double pVelocity) 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   std::stringstream commStr;
-  commStr << "ID wagon.steer MoveRelative [" << pRelativeDistance*CELL_LENGTH << ", " << pVelocity << "]\r\n";
+  commStr << "ID wagon.steer MoveRelative [" << pRelativeDistance << ", " << pVelocity << "]\r\n";
   std::string comm = commStr.str();
 
   if (SendSimCommand(comm)) {
@@ -139,6 +139,29 @@ void RobotPlatformSim::MoveRelative(double pRelativeDistance, double pVelocity) 
 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
   return;
+}
+
+void RobotPlatformSim::SwitchDirection(std::string pDirection) {
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    std::stringstream commStr;
+    std::string dirCmd;
+    if(pDirection == "l") {
+        dirCmd = "1.0";
+    }
+    else if(pDirection  == "r") {
+        dirCmd = "2.0";
+    }
+    else if(pDirection == "s") {
+        dirCmd = "3.0";
+    }
+    commStr << "ID wagon.steer Switch ["+dirCmd+"]\r\n";
+    std::string comm = commStr.str();
+    if (SendSimCommand(comm)) {
+      mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot switch direction command issued successfully";
+    } else {
+      mLogger << log4cpp::Priority::DEBUG << __func__ << ": Error in robot switch direction";
+    }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void RobotPlatformSim::MotionCheck() {

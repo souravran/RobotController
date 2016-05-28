@@ -70,6 +70,7 @@ class RobotBehaviorController {
   double mRelativeDistance;
   std::string mRobotName;
   RobotManageStates mManageStates;
+  std::deque<std::string> mMotionCommands;
 
   /*! Used for handling the behavioral finite-state-machine.
    *  In every update, it calls the current state method.

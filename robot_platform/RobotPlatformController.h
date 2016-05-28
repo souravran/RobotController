@@ -28,6 +28,7 @@ class RobotPlatformController : public IRobotPlatform {
   virtual MotionStates GetState();
   virtual void RequestState(MotionStates pRequestedState);
   virtual void RequestMotion(double pRequestedRelativeDistance, double pRequestedVelocity);
+  virtual void RequestDirection(std::string pDirection);
   virtual void Update();
 
  protected:
@@ -62,6 +63,8 @@ class RobotPlatformController : public IRobotPlatform {
    */
   virtual void MoveRelative(double pRelativeDistance, double pVelocity) = 0;
 
+  virtual void SwitchDirection(std::string pDirection) = 0;
+
   /*! Method for checking whether robot is in motion.
    */
   virtual void MotionCheck() = 0;
@@ -75,6 +78,7 @@ class RobotPlatformController : public IRobotPlatform {
   boost::posix_time::ptime mStartTime;  //!< Used to track time for any waiting-state operation
   double mRequestedRelativeDistance;
   double mRequestedVelocity;
+  std::string mDirection;
 
   /*! Used for handling the motion finite-state-machine.
    *  In every update, it calls the current state method.

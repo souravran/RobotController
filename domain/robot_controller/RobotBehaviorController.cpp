@@ -100,7 +100,7 @@ void RobotBehaviorController::StateWaitHoming() {
       // e.i. start location after homing done
 
       // both target and current location are arbitrarily the same, once the robot is initialized
-      mCurrentLocation->SetProperty<unsigned int>("ID", 14);
+      mCurrentLocation->SetProperty<unsigned int>("ID", 107);
       mTargetLocation = mCurrentLocation;
       SetState(&RobotBehaviorController::StateRequestJob);
     } else {
@@ -148,6 +148,7 @@ void RobotBehaviorController::StateRequestPath() {
   mPlannedPath = mPathPlanner->GetPath(mCurrentLocation, mTargetLocation);
 
   mRelativeDistance = 0;
+  mMotionCommands.clear();
   SetState(&RobotBehaviorController::StateWaitRequestPath);
 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
@@ -168,7 +169,8 @@ void RobotBehaviorController::StateWaitRequestPath() {
     if (!mPlannedPath.empty()) {
       if (mPathExecuter->RequestReservePath(mPlannedPath)) {
         if (mRobotPlatform->GetState() == MotionStates::STOPPED) {
-          mRelativeDistance = mPathExecuter->RequestRelativePath(mPlannedPath);
+//          mRelativeDistance = mPathExecuter->RequestRelativePath(mPlannedPath);
+          mMotionCommands = mPathExecuter->RequestRelativePath(mPlannedPath);
           SetState(&RobotBehaviorController::StateExecutePath);
         }
       } else {
@@ -192,11 +194,24 @@ void RobotBehaviorController::StateWaitRequestPath() {
 void RobotBehaviorController::StateExecutePath() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
-  if ((mRobotPlatform->GetState() == MotionStates::STOPPED) && (mRelativeDistance != 0)) {
-    mRobotPlatform->RequestState(MotionStates::MOVING);
-    // just setting dummy relative distance and velocity values for the current test job
-    mRobotPlatform->RequestMotion(mRelativeDistance, 20.0);
-    SetState(&RobotBehaviorController::StateCheckPathExecution);
+  if ((mRobotPlatform->GetState() == MotionStates::STOPPED) && (!mMotionCommands.empty())) {
+    std::string cmd = mMotionCommands.front();
+    mMotionCommands.pop_front();
+    if((cmd == "l") || (cmd == "r") || (cmd == "s")) {
+        mRobotPlatform->RequestDirection(cmd);
+       mPathExecuter->RequestDirectionChange(cmd);
+//        SetState(&RobotBehaviorController::StateExecutePath);
+    }
+    else {
+        mRobotPlatform->RequestState(MotionStates::MOVING);
+        std::stringstream cmdStream;
+        cmdStream << cmd;
+        cmdStream >> mRelativeDistance;
+        mLogger << log4cpp::Priority::DEBUG << __func__ << ": ###############################  "<<mRelativeDistance <<"  CMD  :"<< cmd;
+        // just setting dummy relative distance and velocity values for the current test job
+        mRobotPlatform->RequestMotion(mRelativeDistance, 20.0);
+        SetState(&RobotBehaviorController::StateCheckPathExecution);
+    }
   }
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
@@ -219,7 +234,7 @@ void RobotBehaviorController::StateWaitPathExecution() {
     if (mRobotPlatform->GetState() == MotionStates::MOVING) {
         // once the robot starts moving, that means it has left the initialization area
         // and hence we set the RobotManageStates to HANDLING, so that other robot starts initialization
-        mManageStates = RobotManageStates::HANDLING;
+//        mManageStates = RobotManageStates::HANDLING;
         mLogger << log4cpp::Priority::DEBUG << __func__ << ": "<< mRobotName << " Robot moving to the target ...";
     }
     else if (mRobotPlatform->GetState() == MotionStates::STOPPED) {
@@ -227,7 +242,15 @@ void RobotBehaviorController::StateWaitPathExecution() {
 
         // when the robot is stopped, check if it is in target location
         // once the robot at target location, then we need to execute the script
-        SetState(&RobotBehaviorController::StateExecuteScript);
+        // also we go to next state, only when all the motion commands are executed
+        if (mMotionCommands.empty()) {
+            mLogger << log4cpp::Priority::DEBUG << __func__ << ": "<< mRobotName << " Requesting a pick-up reached !! ";
+            mPathExecuter->RequestState(PathExecutionStates::REACHED);
+            SetState(&RobotBehaviorController::StateExecuteScript);
+        }
+        else {
+            SetState(&RobotBehaviorController::StateExecutePath);
+        }
     }
     else if (mRobotPlatform->GetState() == MotionStates::ERROR) {
         mLogger << log4cpp::Priority::DEBUG << __func__ << " Error in robot path execution !!";
@@ -237,21 +260,33 @@ void RobotBehaviorController::StateWaitPathExecution() {
 }
 
 void RobotBehaviorController::StateExecuteScript() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
-  // if job is done, then request a job, otherwise again request path to drop location
-  if (mPathExecuter->GetState() == PathExecutionStates::PICKUP_REACHED) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot is picking up the sample";
-    SetState(&RobotBehaviorController::StateRequestPath);
-  } else if (mPathExecuter->GetState() == PathExecutionStates::DROP_REACHED) {
-    mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot is dropping the sample";
-    mCurrentJob = 0;
-    SetState(&RobotBehaviorController::StateRequestJob);
-  }
-
-  // the robot is at target location, hence a new path has be planned
-  mPlannedPath.clear();
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    // if job is done, then request a job, otherwise again request path to drop location
+    if (mPathExecuter->GetState() == PathExecutionStates::PICKUP_REACHED) {
+        mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot is picking up the sample";
+        if (!mPlannedPath.empty()) {
+//            if (mPathExecuter->RequestUnreservePath(mPlannedPath)) {
+                // the robot is at target location, hence a new path has be planned
+                mPlannedPath.clear();
+                SetState(&RobotBehaviorController::StateRequestPath);
+//            }
+        }
+    }
+    else if (mPathExecuter->GetState() == PathExecutionStates::DROP_REACHED) {
+        for(int i=0; i<15; i++) {
+            mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot is dropping the sample";
+        }
+        if (!mPlannedPath.empty()) {
+            if (mPathExecuter->RequestUnreservePath(mPlannedPath)) {
+                // the robot is at target location, hence a new path has be planned
+                mPlannedPath.clear();
+            }
+        }
+        mCurrentJob = 0;
+        SetState(&RobotBehaviorController::StateRequestJob);
+    }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 RobotBehaviorController::RobotBehaviorController(IRobotPlatform::Ptr pRobotPlatform, IPathExecuter::Ptr pMotionExecuter,
@@ -269,7 +304,8 @@ RobotBehaviorController::RobotBehaviorController(IRobotPlatform::Ptr pRobotPlatf
 , mPlannedPath()
 , mRelativeDistance(0)
 , mManageStates(RobotManageStates::NONE)
-, mRobotName(pRobotName) {
+, mRobotName(pRobotName)
+, mMotionCommands() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   SetState(&RobotBehaviorController::StateInit);

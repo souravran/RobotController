@@ -74,6 +74,8 @@ class IRobotPlatform {
    */
   virtual void RequestMotion(double pRequestedRelativeDistance, double pRequestedVelocity) = 0;
 
+  virtual void RequestDirection(std::string pDirection) = 0;
+
   /*! This method sets a bit value of 16-bit hardware status and connection option filed.
    *
    * \param  pOptionFlag  one of the defined flag, for eg. connection flag (CONN_FLAG)

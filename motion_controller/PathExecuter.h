@@ -28,8 +28,10 @@ class PathExecuter : public IPathExecuter {
   virtual void Update();
   virtual PathExecutionStates GetState();
   virtual void RequestState(PathExecutionStates pRequestedState);
-  virtual double RequestRelativePath(IMapServer::Path pPath);
+  virtual std::deque<std::string>  RequestRelativePath(IMapServer::Path pPath);
   virtual bool RequestReservePath(IMapServer::Path pPath);
+  virtual bool RequestUnreservePath(IMapServer::Path pPath);
+  virtual void RequestDirectionChange(std::string pDirection);
 
  protected:
   explicit PathExecuter(IMapServer::Ptr pMapProxy, IRobotPlatform::Ptr pRobotPlatform);
@@ -41,6 +43,7 @@ class PathExecuter : public IPathExecuter {
   State mExecuterState;  //!< Assigned with pointer to the motion controller FSM method
   PathExecutionStates mCurrentState;
   PathExecutionStates mRequestedState;
+  std::string mRobotFaceDirection; //X,Y,mX,mY
 
   /*! Used for handling the motion execution finite-state-machine.
    *  In every update, it calls the current state method.
@@ -57,6 +60,7 @@ class PathExecuter : public IPathExecuter {
   void StateWaitPathExecute();
   void StatePickup();
   void StateDrop();
+  std::deque<std::string> ProcessPath(IMapServer::Path pPath);
 };
 
 } /* namespace accmetnavigation */

@@ -59,9 +59,13 @@ IMapServer::Path PathPlannerAStar::GetPath(Cell::CellPtr pStartLocation, Cell::C
           << pTargetLocation->GetProperty<unsigned int>("X", 0) << " , "
           << pTargetLocation->GetProperty<unsigned int>("Y", 0) << "]";
 
-    a_star_search(pStartLocation, pTargetLocation);
+    came_from.clear();
+    cost_so_far.clear();
     mPath.clear();
-    mPath = ReconstructPath(pStartLocation, pTargetLocation, came_from);
+    a_star_search(pStartLocation, pTargetLocation);
+    if(came_from.count(pStartLocation)) {
+        mPath = ReconstructPath(pStartLocation, pTargetLocation, came_from);
+    }
 
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": The path obtained is as follows     : ";
     for (auto p : mPath) {
