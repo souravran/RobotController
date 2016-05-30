@@ -15,9 +15,9 @@ namespace accmetnavigation {
 #define CELL_LENGTH 8.26
 
 RobotPlatformSim::Ptr RobotPlatformSim::Create(boost::asio::io_service& pIOService, std::string pSimHostAddrs,
-                                               int16_t pSimDestinationPort) {
+                                               int16_t pSimDestinationPort, std::string pRobotName) {
   RobotPlatformSim::Ptr retVal =
-      RobotPlatformSim::Ptr(new RobotPlatformSim(pIOService, pSimHostAddrs, pSimDestinationPort));
+      RobotPlatformSim::Ptr(new RobotPlatformSim(pIOService, pSimHostAddrs, pSimDestinationPort, pRobotName));
   return retVal;
 }
 
@@ -65,7 +65,7 @@ void RobotPlatformSim::Initialize() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   std::stringstream commStr;
-  commStr << "ID wagon.steer Initialize\r\n";
+  commStr << "ID "+mRobotName+".steer Initialize\r\n";
   std::string comm = commStr.str();
 
   if (SendSimCommand(comm)) {
@@ -107,7 +107,7 @@ void RobotPlatformSim::Stop() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   std::stringstream commStr;
-  commStr << "ID wagon.steer Initialize\r\n";
+  commStr << "ID "+mRobotName+".steer Initialize\r\n";
   std::string stopCommand = commStr.str();
 
   if (SendSimCommand(stopCommand)) {
@@ -125,7 +125,7 @@ void RobotPlatformSim::MoveRelative(double pRelativeDistance, double pVelocity) 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   std::stringstream commStr;
-  commStr << "ID wagon.steer MoveRelative [" << pRelativeDistance << ", " << pVelocity << "]\r\n";
+  commStr << "ID "+mRobotName+".steer MoveRelative [" << pRelativeDistance << ", " << pVelocity << "]\r\n";
   std::string comm = commStr.str();
 
   if (SendSimCommand(comm)) {
@@ -154,7 +154,7 @@ void RobotPlatformSim::SwitchDirection(std::string pDirection) {
     else if(pDirection == "s") {
         dirCmd = "3.0";
     }
-    commStr << "ID wagon.steer Switch ["+dirCmd+"]\r\n";
+    commStr << "ID "+mRobotName+".steer Switch ["+dirCmd+"]\r\n";
     std::string comm = commStr.str();
     if (SendSimCommand(comm)) {
       mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot switch direction command issued successfully";
@@ -226,7 +226,7 @@ void RobotPlatformSim::CheckPose() {
   boost::asio::streambuf response;
 
   std::stringstream commStr;
-  commStr << "ID wagon.steer TrackPose\r\n";
+  commStr << "ID "+mRobotName+".steer TrackPose\r\n";
   std::string comm = commStr.str();
   if (ReceiveSimCommandResponse(comm, response)) {
     std::string ID, commandRet, startDelim, poseValue, endDelim;
@@ -242,18 +242,23 @@ void RobotPlatformSim::CheckPose() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
-RobotPlatformSim::RobotPlatformSim(boost::asio::io_service& pIOService, std::string pHostAddrs,
-                                   int16_t pDestinationPort)
-    : mLogger(log4cpp::Category::getInstance("RobotPlatformSim")),
-      mSocket(pIOService),
-      mSimHostAddrs(pHostAddrs),
-      mSimDestinationPort(pDestinationPort),
-      mCurrentPoseVal(0),
-      mLastPoseVal(0),
-      mCountForPoseUpdate(0) {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+double RobotPlatformSim::GetPose() {
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    return mCurrentPoseVal;
+}
 
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+RobotPlatformSim::RobotPlatformSim(boost::asio::io_service& pIOService, std::string pHostAddrs, int16_t pDestinationPort, std::string pRobotName)
+: mLogger(log4cpp::Category::getInstance("RobotPlatformSim"))
+, mRobotName(pRobotName)
+, mSocket(pIOService)
+, mSimHostAddrs(pHostAddrs)
+, mSimDestinationPort(pDestinationPort)
+, mCurrentPoseVal(0)
+, mLastPoseVal(0)
+, mCountForPoseUpdate(0) {
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 }  // namespace accmetnavigation

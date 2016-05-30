@@ -242,7 +242,7 @@ void RobotPlatformController::StateStartMoving() {
     ConnectionCheck();
     HWStatusCheck();
     if ((mHWStatusConnFlags & (CONN_FLAG | HW_STATUS_FLAG)) == (CONN_FLAG | HW_STATUS_FLAG)) {
-        if(!mDirection.empty()) {
+        if (!mDirection.empty()) {
             SwitchDirection(mDirection);
             mDirection.clear();
         }

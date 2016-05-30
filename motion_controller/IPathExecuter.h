@@ -39,6 +39,7 @@ class IPathExecuter {
   virtual bool RequestReservePath(IMapServer::Path pUnreservedPath) = 0;
   virtual bool RequestUnreservePath(IMapServer::Path pUnreservedPath) = 0;
   virtual void RequestDirectionChange(std::string pDirection) = 0;
+  virtual void RequestReleaseCell(IMapServer::Path pPlannedPath) = 0;
 };
 }  // namespace accmetnavigation
 #endif  // MOTION_CONTROLLER_IPATHEXECUTER_H_

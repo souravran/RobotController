@@ -87,6 +87,8 @@ class IRobotPlatform {
    * \param  pOptionFlag  one of the defined flag, for eg. connection flag (CONN_FLAG)
    */
   virtual void UnsetHWStatusConnFlags(uint16_t pOptionFlag) = 0;
+
+  virtual double GetPose() = 0;
 };
 }  // namespace accmetnavigation
 #endif  // ROBOT_PLATFORM_IROBOTPLATFORM_H_

@@ -20,6 +20,8 @@
 
 namespace accmetnavigation {
 
+static const std::vector<std::string> robotNameStore = {"Dala", "Roxy", "Sasa"};
+
 //! Wait time for iteratively updating the FSM
 #define WAIT_IN_MILISECONDS 50000
 
@@ -40,22 +42,16 @@ RobotManager::RobotManager(const int &argc, char *argv[])
 , mJobRequester()
 , mRobotStore(){
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+
     mMapProxyClient = MapProxyClient::Create("../MapGraph.dot");
     mJobSimulator = JobSimulator::Create(mMapProxyClient);
     mJobRequester = JobRequesterSimple::Create(mJobSimulator);
-//    int t = 1;
-    std::vector<std::string> roboNameStore;
-    roboNameStore.push_back("DOXY");
-//    roboNameStore.push_back("ADRIAN");
 
     // Robot creation and storing in container
-//    while(t--) {
-        std::shared_ptr<RobotUnit> newRobot1 = std::shared_ptr<RobotUnit>(new RobotUnit(mMapProxyClient, mJobRequester, roboNameStore.at(0)));
-        mRobotStore.push_back(newRobot1);
-//        std::shared_ptr<RobotUnit> newRobot2 = std::shared_ptr<RobotUnit>(new RobotUnit(mMapProxyClient, mJobRequester, roboNameStore.at(1)));
-//        mRobotStore.push_back(newRobot2);
-//    }
-
+    for(auto robotName : robotNameStore) {
+        std::shared_ptr<RobotUnit> newActiveRobot = std::shared_ptr<RobotUnit>(new RobotUnit(mMapProxyClient, mJobRequester, robotName));
+        mRobotStore.push_back(newActiveRobot);
+    }
 
 //    mRobotPlatform = RobotPlatformSim::Create(mIOService, mSimHostAddrs, mSimDestinationPort);
 //    mPathPlannerAStar = PathPlannerAStar::Create(mMapProxyClient);
@@ -64,20 +60,44 @@ RobotManager::RobotManager(const int &argc, char *argv[])
 }
 
 void RobotManager::RunRobots() {
-    std::vector<std::shared_ptr<RobotUnit>>::iterator itr;
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
+    std::vector<std::shared_ptr<RobotUnit>>::iterator itrInit;
+    std::vector<std::shared_ptr<RobotUnit>>::iterator itrStartInit;
+    std::vector<std::shared_ptr<RobotUnit>>::iterator itrCheckInit;
+    std::vector<std::shared_ptr<RobotUnit>>::iterator itrHandle;
+    bool allRobotsHandling = false;
     while(true) {
-        for(itr = mRobotStore.begin(); ;itr!=mRobotStore.end()) {
-            itr->get()->Update();
-            if((itr->get()->mRobotController->GetRobotManageState()==RobotBehaviorController::RobotManageStates::HANDLING)
-               && (itr!=mRobotStore.end())) {
-                itr++;
+        if(allRobotsHandling) {
+            for(itrHandle = mRobotStore.begin(); itrHandle!=mRobotStore.end(); itrHandle++) {
+                (*itrHandle)->Update();
+                sleep(1);
             }
-            sleep(1);
+        }
+        else if(!allRobotsHandling) {
+            for(itrInit = mRobotStore.begin(); itrInit!=mRobotStore.end();) {
+                for(itrStartInit = mRobotStore.begin(); itrStartInit<=itrInit; itrStartInit++) {
+                    (*itrStartInit)->Update();
+                    sleep(1);
+                }
+                if(((*itrInit)->mRobotController->GetRobotManageState()==RobotBehaviorController::RobotManageStates::HANDLING) &&
+                        (itrInit!=mRobotStore.end())) {
+                    itrInit++;
+                }
+            }
+            for(itrCheckInit = mRobotStore.begin(); itrCheckInit!=mRobotStore.end(); itrCheckInit++) {
+                if(((*itrCheckInit)->mRobotController->GetRobotManageState()==RobotBehaviorController::RobotManageStates::HANDLING)) {
+                    allRobotsHandling = true;
+                }
+                else {
+                    allRobotsHandling = false;
+                }
+            }
         }
 //        usleep(WAIT_IN_MILISECONDS * 1000000);
-        sleep(1);
+//        sleep(1);
     }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 } /* namespace accmetnavigation */

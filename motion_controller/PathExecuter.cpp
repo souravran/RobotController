@@ -54,7 +54,7 @@ std::deque<std::string>  PathExecuter::RequestRelativePath(IMapServer::Path pPat
 
   // as currently the cells are considered to be unit length,
   // the relative distance is nothing but the number of cells in the path
-  double relativeDistance = pPath.size();
+  mRelativeDist = abs(pPath.size());
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
   return ProcessPath(pPath);
 }
@@ -68,9 +68,11 @@ bool PathExecuter::RequestReservePath(IMapServer::Path pUnreservedPath) {
 
 bool PathExecuter::RequestUnreservePath(IMapServer::Path pReservedPath) {
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  bool retSuccess = mMapProxyClient->ReleaseOccupancy(pReservedPath);
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
-  return retSuccess;
+    // pop back the last cell, cause currently the robot stays there
+//    pReservedPath.pop_back();
+    bool retSuccess = mMapProxyClient->ReleaseOccupancy(pReservedPath);
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    return retSuccess;
 }
 
 void PathExecuter::RequestDirectionChange(std::string pDirection) {
@@ -110,6 +112,18 @@ void PathExecuter::RequestDirectionChange(std::string pDirection) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
+void PathExecuter::RequestReleaseCell(IMapServer::Path pPlannedPath) {
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    int numCells = (int)(mRelativeDist - mRobotPlatform->GetPose());
+    if(pPlannedPath.size()>numCells) {
+       for(int i=0; i<numCells; i++) {
+           pPlannedPath.pop_front();
+           mMapProxyClient->ReleaseOccupancy(pPlannedPath);
+       }
+    }
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+}
+
 void PathExecuter::HandleFSM() {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
   (this->*mExecuterState)();
@@ -131,16 +145,17 @@ void PathExecuter::StateInit() {
 }
 
 void PathExecuter::StateWaitPathExecute() {
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
-  if (mRequestedState == PathExecutionStates::EXECUTE_PATH) {
-	  mRequestedState = PathExecutionStates::NONE;
-    if ((mCurrentState == PathExecutionStates::NONE) || (mCurrentState == PathExecutionStates::DROP_REACHED)) {
-      SetState(&PathExecuter::StatePickup);
-    } else if (mCurrentState == PathExecutionStates::PICKUP_REACHED) {
-      SetState(&PathExecuter::StateDrop);
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
+    if (mRequestedState == PathExecutionStates::EXECUTE_PATH) {
+        mRequestedState = PathExecutionStates::NONE;
+        if ((mCurrentState == PathExecutionStates::NONE) || (mCurrentState == PathExecutionStates::DROP_REACHED)) {
+            SetState(&PathExecuter::StatePickup);
+        }
+        else if (mCurrentState == PathExecutionStates::PICKUP_REACHED) {
+            SetState(&PathExecuter::StateDrop);
+        }
     }
-  }
-  mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
+    mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
 }
 
 void PathExecuter::StatePickup() {
@@ -369,7 +384,8 @@ PathExecuter::PathExecuter(IMapServer::Ptr pMapProxy, IRobotPlatform::Ptr pRobot
 , mExecuterState(0)
 , mCurrentState(PathExecutionStates::NONE)
 , mRequestedState(PathExecutionStates::NONE)
-, mRobotFaceDirection("X") {
+, mRobotFaceDirection("X")
+, mRelativeDist(0) {
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": ENTRY ";
 
   SetState(&PathExecuter::StateInit);

@@ -27,14 +27,16 @@ namespace accmetnavigation {
 class RobotPlatformSim : public RobotPlatformController {
  public:
   typedef std::shared_ptr<RobotPlatformSim> Ptr;
-  static Ptr Create(boost::asio::io_service& pIOService, std::string pSimHostAddrs, int16_t pSimDestinationPort);  // NOLINT boost::asio::io_service needs non const reference
+  static Ptr Create(boost::asio::io_service& pIOService, std::string pSimHostAddrs, int16_t pSimDestinationPort, std::string pRobotName);
   virtual ~RobotPlatformSim();
+  virtual double GetPose();
 
  protected:
-  RobotPlatformSim(boost::asio::io_service& pIOService, std::string pSimHostAddrs, int16_t pSimDestinationPort);  // NOLINT boost::asio::io_service needs non const reference
+  RobotPlatformSim(boost::asio::io_service& pIOService, std::string pSimHostAddrs, int16_t pSimDestinationPort, std::string pRobotName);
 
  private:
   log4cpp::Category& mLogger;            //!< For logging messages to the console
+  std::string mRobotName;
   boost::asio::ip::tcp::socket mSocket;  //!< Stream socket object for asynchronous communication
   std::string mSimHostAddrs;             //!< Supplied IP-address
   int16_t mSimDestinationPort;           //!< Supplied destination port number

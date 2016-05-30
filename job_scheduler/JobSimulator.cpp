@@ -13,7 +13,10 @@
 
 namespace accmetnavigation {
 
-static const std::vector<std::pair<int,int>> JobListCellIDs = {{190, 123}, {334, 259}, {341, 265}, {402, 410}, {182, 308}, {122, 115}};
+//static const std::vector<std::pair<int,int>> JobListCellIDs = {{190, 123}, {334, 259}, {341, 265}, {402, 410}, {182, 308}, {122, 115}};
+//static const std::vector<std::pair<int,int>> JobListCellIDs = {{182, 308}, {122, 115}};
+//static const std::vector<std::pair<int,int>> JobListCellIDs = {{182, 326}, {190, 334}, {182, 326}, {190, 334}, {182, 326}, {190, 334}};
+static const std::vector<std::pair<int,int>> JobListCellIDs = {{190, 334}, {182, 326}, {190, 334}, {182, 326}, {182, 326}, {190, 334}};
 
 JobSimulator::Ptr JobSimulator::Create(IMapServer::Ptr pMapProxyClient) {
   JobSimulator::Ptr retVal = JobSimulator::Ptr(new JobSimulator(pMapProxyClient));

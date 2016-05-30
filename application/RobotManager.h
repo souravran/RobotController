@@ -57,7 +57,7 @@ public:
         , mMapProxyClient(pMapProxyClient)
         , mJobRequester(pJobRequester)
         , mRobotName(pRobotName) {
-            mRobotPlatform = RobotPlatformSim::Create(mIOService, mSimHostAddrs, mSimDestinationPort);
+            mRobotPlatform = RobotPlatformSim::Create(mIOService, mSimHostAddrs, mSimDestinationPort, mRobotName);
             mPathPlannerAStar = PathPlannerAStar::Create(mMapProxyClient);
             mPathExecuter = PathExecuter::Create(mMapProxyClient, mRobotPlatform);
             mRobotController = RobotBehaviorController::Create(mRobotPlatform, mPathExecuter, mJobRequester, mPathPlannerAStar, mRobotName);

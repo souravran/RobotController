@@ -63,16 +63,21 @@ IMapServer::Path PathPlannerAStar::GetPath(Cell::CellPtr pStartLocation, Cell::C
     mCostSoFarStore.clear();
     mPath.clear();
     ConductSearch(pStartLocation, pTargetLocation);
-    if(mCameFromList.count(pStartLocation)) {
-        mPath = ReconstructPath(pStartLocation, pTargetLocation, mCameFromList);
-    }
-
     mLogger << log4cpp::Priority::DEBUG << __func__ << ": The path obtained is as follows     : ";
     for (auto p : mPath) {
         mLogger << log4cpp::Priority::DEBUG << __func__ << ":   ["
               << p->GetProperty<unsigned int>("X", 0) << " , "
               << p->GetProperty<unsigned int>("Y", 0) << "]";
     }
+    if(mCameFromList.count(pStartLocation) && mCameFromList.count(pTargetLocation)) {
+        mPath = ReconstructPath(pStartLocation, pTargetLocation, mCameFromList);
+    }
+    else {
+        mLogger << log4cpp::Priority::DEBUG << __func__ << ": Not a valid path can be obtained, clearing the path ! ";
+        mPath.clear();
+    }
+
+
 
   mLogger << log4cpp::Priority::DEBUG << __func__ << ": EXIT ";
   return mPath;

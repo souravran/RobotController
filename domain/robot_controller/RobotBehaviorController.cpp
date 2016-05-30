@@ -14,7 +14,7 @@ namespace accmetnavigation {
 
 //! Time interval for Homing process
 #define HOMING_TIMEOUT_SECONDS 40
-#define PATHPLANNING_TIMEOUT_SECONDS 10
+#define PATHPLANNING_TIMEOUT_SECONDS 40
 
 RobotBehaviorController::Ptr RobotBehaviorController::Create(IRobotPlatform::Ptr pRobotPlatform,
                                                              IPathExecuter::Ptr pMotionExecuter,
@@ -106,6 +106,7 @@ void RobotBehaviorController::StateWaitHoming() {
     } else {
       mLogger << log4cpp::Priority::DEBUG << __func__ << ": Homing is going on for "
               << boost::posix_time::microsec_clock::local_time() - mStartTime << " Seconds";
+      return;
     }
   }
 
@@ -234,8 +235,10 @@ void RobotBehaviorController::StateWaitPathExecution() {
     if (mRobotPlatform->GetState() == MotionStates::MOVING) {
         // once the robot starts moving, that means it has left the initialization area
         // and hence we set the RobotManageStates to HANDLING, so that other robot starts initialization
-//        mManageStates = RobotManageStates::HANDLING;
+        mManageStates = RobotManageStates::HANDLING;
         mLogger << log4cpp::Priority::DEBUG << __func__ << ": "<< mRobotName << " Robot moving to the target ...";
+        // while the robot is moving, lets free up already travelled cells
+        mPathExecuter->RequestReleaseCell(mPlannedPath);
     }
     else if (mRobotPlatform->GetState() == MotionStates::STOPPED) {
         mLogger << log4cpp::Priority::DEBUG << __func__ <<  ": "<< mRobotName << " Robot has stopped moving";
@@ -266,11 +269,11 @@ void RobotBehaviorController::StateExecuteScript() {
     if (mPathExecuter->GetState() == PathExecutionStates::PICKUP_REACHED) {
         mLogger << log4cpp::Priority::DEBUG << __func__ << ": Robot is picking up the sample";
         if (!mPlannedPath.empty()) {
-//            if (mPathExecuter->RequestUnreservePath(mPlannedPath)) {
+            if (mPathExecuter->RequestUnreservePath(mPlannedPath)) {
                 // the robot is at target location, hence a new path has be planned
                 mPlannedPath.clear();
                 SetState(&RobotBehaviorController::StateRequestPath);
-//            }
+            }
         }
     }
     else if (mPathExecuter->GetState() == PathExecutionStates::DROP_REACHED) {

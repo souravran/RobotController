@@ -39,6 +39,7 @@ bool MapProxyClient::UpdateOccupancy(IMapServer::Path pUnreservedPath) {
     if ((mGraph[*vertexItr]->GetProperty<bool>("Navigable", false)) == true) {
       for (auto cell : pUnreservedPath) {
         if (cell->GetProperty<unsigned int>("ID", 0) == mGraph[*vertexItr]->GetProperty<unsigned int>("ID", 0)) {
+        	mLogger << log4cpp::Priority::DEBUG << __func__ << ": Setting occupancy of the cells ******** ";
           if (!(mGraph[*vertexItr]->SetProperty<bool>("Occupancy", true))) {
             return false;
           }
@@ -61,6 +62,7 @@ bool MapProxyClient::ReleaseOccupancy(IMapServer::Path pReservedPath) {
     if ((mGraph[*vertexItr]->GetProperty<bool>("Navigable", false)) == true) {
       for (auto cell : pReservedPath) {
         if (cell->GetProperty<unsigned int>("ID", 0) == mGraph[*vertexItr]->GetProperty<unsigned int>("ID", 0)) {
+        	mLogger << log4cpp::Priority::DEBUG << __func__ << ": Releasing occupancy of the cells ******** ";
           if (!(mGraph[*vertexItr]->SetProperty<bool>("Occupancy", false))) {
             return false;
           }
@@ -90,7 +92,8 @@ std::list<Cell::CellPtr> MapProxyClient::GetNeighboringCells(Cell::CellPtr pLoca
     boost::graph_traits<Map::Graph>::vertex_iterator vertexStart, vertexEnd, vertexItr;
     boost::tie(vertexStart, vertexEnd) = boost::vertices(mGraph);
     for (vertexItr = vertexStart; vertexStart != vertexEnd; vertexStart = vertexItr) {
-        if ((mGraph[*vertexItr]->GetProperty<bool>("Navigable", false)) == true) {
+        if (((mGraph[*vertexItr]->GetProperty<bool>("Navigable", false)) == true) &&
+             (mGraph[*vertexItr]->GetProperty<bool>("Occupancy", true) == false)) {
             if (((mGraph[*vertexItr]->GetProperty<unsigned int>("X", 0) == X) &&
                 (mGraph[*vertexItr]->GetProperty<unsigned int>("Y", 0) == Y1)) ||
                 ((mGraph[*vertexItr]->GetProperty<unsigned int>("X", 0) == X) &&

@@ -32,6 +32,7 @@ class PathExecuter : public IPathExecuter {
   virtual bool RequestReservePath(IMapServer::Path pPath);
   virtual bool RequestUnreservePath(IMapServer::Path pPath);
   virtual void RequestDirectionChange(std::string pDirection);
+  virtual void RequestReleaseCell(IMapServer::Path pPlannedPath);
 
  protected:
   explicit PathExecuter(IMapServer::Ptr pMapProxy, IRobotPlatform::Ptr pRobotPlatform);
@@ -44,6 +45,7 @@ class PathExecuter : public IPathExecuter {
   PathExecutionStates mCurrentState;
   PathExecutionStates mRequestedState;
   std::string mRobotFaceDirection; //X,Y,mX,mY
+  double mRelativeDist;
 
   /*! Used for handling the motion execution finite-state-machine.
    *  In every update, it calls the current state method.
